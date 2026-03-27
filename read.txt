@@ -1,0 +1,4 @@
+Follow below instructions to execute api
+
+1.uvicorn app:app --reload --port 8003(execute api endpoint)
+2.open ui.html - open ui interface
