@@ -1,0 +1,33 @@
+{
+  "categories": [
+    {
+      "name": "Starters",
+      "items": [
+        {"name": "Paneer Tikka", "description": "Grilled cottage cheese", "price": 400},
+        {"name": "Schezwan Paneer Tikka", "description": "Spicy paneer tikka", "price": 450},
+        {"name": "Corn Bhel", "description": "Spicy corn snack", "price": 300}
+      ]
+    },
+    {
+      "name": "Main Course",
+      "items": [
+        {"name": "Paneer Butter Masala", "description": "Rich creamy gravy", "price": 450},
+        {"name": "Dal Makhani", "description": "Black lentils in butter", "price": 400}
+      ]
+    },
+    {
+      "name": "Breads",
+      "items": [
+        {"name": "Butter Naan", "description": "Soft naan with butter", "price": 125},
+        {"name": "Tandoori Roti", "description": "Whole wheat bread", "price": 100}
+      ]
+    },
+    {
+      "name": "Beverages",
+      "items": [
+        {"name": "Mango Lassi", "description": "Sweet yogurt drink", "price": 250},
+        {"name": "Cold Coffee", "description": "Chilled coffee", "price": 275}
+      ]
+    }
+  ]
+}
