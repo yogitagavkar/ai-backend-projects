@@ -4,6 +4,10 @@ from app.models import ChatRequest, ChatResponse, BillResponse
 
 app = FastAPI()
 
+@app.get("/")
+def root():
+    return {"status": "Restaurant Chatbot API is running 🚀"}
+
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
 
