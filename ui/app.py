@@ -5,7 +5,7 @@ import requests
 
 st.set_page_config(page_title="Restaurant Chatbot")
 
-API_URL = "http://127.0.0.1:8004/chat"
+API_URL = "https://restaurant-order-chatbot-final.onrender.com/chat"
 
 st.title("🍽️ AI Restaurant Chatbot")
 
