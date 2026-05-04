@@ -1,85 +1,148 @@
-
 import helper
-import panel as pn  # GUI
-from dotenv import load_dotenv,find_dotenv
-_ = load_dotenv(find_dotenv()) # read local .env file
+import panel as pn
+from dotenv import load_dotenv, find_dotenv
 
-pn.extension()
-panels = [] # collect display 
+_ = load_dotenv(find_dotenv())
 
-def collect_messages(_):
-    prompt = inp.value
-    inp.value = ''
+pn.extension(
+    sizing_mode="stretch_width",
+    notifications=True
+)
 
-    context.append({'role':'user', 'content':prompt})
+# Store conversation panels
+panels = []
+
+# Theme styling
+CHAT_STYLES = {
+    "border-radius": "12px",
+    "padding": "12px 16px",
+    "margin": "8px 0px",
+    "max-width": "80%",
+    "word-wrap": "break-word",
+    "overflow-wrap": "break-word"
+}
+
+USER_STYLE = {
+    **CHAT_STYLES,
+    "background": "#DCF8C6",
+    "align-self": "flex-end"
+}
+
+BOT_STYLE = {
+    **CHAT_STYLES,
+    "background": "#F6F6F6",
+    "align-self": "flex-start"
+}
+
+
+def collect_messages(event):
+    prompt = inp.value.strip()
+
+    if not prompt:
+        return chat_container
+
+    inp.value = ""
+
+    context.append({
+        'role': 'user',
+        'content': prompt
+    })
+
     response = helper.get_completion_from_messages(context)
 
-    context.append({'role':'assistant', 'content':response})
+    context.append({
+        'role': 'assistant',
+        'content': response
+    })
 
-    panels.append(
-        pn.Row('User:', pn.pane.Markdown(prompt, width=600))
-    )
-
+    # User bubble
     panels.append(
         pn.Row(
-            'Assistant:',
-            pn.pane.Markdown(response, width=600, styles={'background-color': '#F6F6F6'})
+            pn.Spacer(),
+            pn.pane.Markdown(
+                f"**You**  \n{prompt}",
+                styles=USER_STYLE,
+                width_policy="max"
+            )
         )
     )
 
-    return pn.Column(*panels)
+    # Assistant bubble
+    panels.append(
+        pn.Row(
+            pn.pane.Markdown(
+                f"**OrderBot 🍕**  \n{response}",
+                styles=BOT_STYLE,
+                width_policy="max"
+            ),
+            pn.Spacer()
+        )
+    )
 
-context = [ {'role':'system', 'content':"""
-You are OrderBot, an automated service to collect orders for a pizza restaurant. \
-You first greet the customer, then collects the order, \
-and then asks if it's a pickup or delivery. \
-You wait to collect the entire order, then summarize it and check for a final \
-time if the customer wants to add anything else. \
-If it's a delivery, you ask for an address. \
-Finally you collect the payment.\
-Make sure to clarify all options, extras and sizes to uniquely \
-identify the item from the menu.\
-You respond in a short, very conversational friendly style. \
-The menu includes \
-pepperoni pizza  12.95, 10.00, 7.00 \
-cheese pizza   10.95, 9.25, 6.50 \
-eggplant pizza   11.95, 9.75, 6.75 \
-fries 4.50, 3.50 \
-greek salad 7.25 \
-Toppings: \
-extra cheese 2.00, \
-mushrooms 1.50 \
-sausage 3.00 \
-canadian bacon 3.50 \
-AI sauce 1.50 \
-peppers 1.00 \
-Drinks: \
-coke 3.00, 2.00, 1.00 \
-sprite 3.00, 2.00, 1.00 \
-bottled water 5.00 \
-"""} ] 
+    chat_container.objects = panels
+    return chat_container
 
-inp = pn.widgets.TextInput(value="Hi", placeholder='Enter text here…')
-button_conversation = pn.widgets.Button(name="Chat!")
 
-interactive_conversation = pn.bind(collect_messages, button_conversation)
+context = [{
+    'role': 'system',
+    'content': """
+You are OrderBot, an automated service to collect orders for a pizza restaurant.
+You greet the customer, collect the order, ask for pickup/delivery,
+summarize the order, ask for final additions, collect address if delivery,
+and collect payment.
+Be short, friendly, and conversational.
+"""
+}]
 
+# Header
+header = pn.pane.Markdown("""
+# 🍕 Pizza OrderBot  
+### Fast, friendly, and delicious ordering
+""")
+
+# Chat area
+chat_container = pn.Column(
+    sizing_mode="stretch_both",
+    height=500,
+    scroll=True,
+    styles={
+        "padding": "15px",
+        "background": "#FAFAFA",
+        "border-radius": "12px",
+        "overflow-y": "auto"
+    }
+)
+
+# Input area
+inp = pn.widgets.TextInput(
+    placeholder="Type your order here...",
+    sizing_mode="stretch_width"
+)
+
+send_button = pn.widgets.Button(
+    name="Send 🚀",
+    button_type="primary",
+    width=120
+)
+
+send_button.on_click(collect_messages)
+
+input_row = pn.Row(
+    inp,
+    send_button,
+    sizing_mode="stretch_width"
+)
 
 dashboard = pn.Column(
-    inp,
-    pn.Row(button_conversation),
-    pn.panel(interactive_conversation, loading_indicator=True, height=300),
+    header,
+    chat_container,
+    input_row,
+    sizing_mode="stretch_both",
+    styles={
+        "max-width": "900px",
+        "margin": "0 auto",
+        "padding": "20px"
+    }
 )
 
 dashboard.servable()
-
-messages =  context.copy()
-messages.append(
-{'role':'system', 'content':'create a json summary of the previous food order. Itemize the price for each item\
- The fields should be 1) pizza, include size 2) list of toppings 3) list of drinks, include size   4) list of sides include size  5)total price '},    
-)
- #The fields should be 1) pizza, price 2) list of toppings 3) list of drinks, include size include price  4) list of sides include size include price, 5)total price '},    
-
-response = helper.get_completion_from_messages(messages, temperature=0)
-print(response)
-
