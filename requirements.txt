@@ -4,6 +4,6 @@ streamlit
 openai
 python-dotenv
 python-multipart
-pypdf
-python-docx
 requests
+pdfplumber
+python-docx
