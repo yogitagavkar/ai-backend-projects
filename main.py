@@ -1,88 +1,66 @@
-import streamlit as st
-import requests
-import json
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from openai import OpenAI
+import helper
+import os
+from dotenv import load_dotenv
 
-st.set_page_config(
-    page_title="AI Resume Analyzer",
-    page_icon="📄",
-    layout="wide"
+# Load environment variables
+load_dotenv()
+
+app = FastAPI()
+
+# OpenAI Client
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY")
 )
 
-API_URL = "https://ai-resume-analyzer.onrender.com/"
 
-# Header
-st.markdown("""
-# 📄 AI Resume Analyzer
-### Upload your resume and get instant AI-powered career insights
-""")
+@app.get("/")
+def root():
+    return {
+        "status": "AI Resume Analyzer API is running 🚀"
+    }
 
-# Sidebar
-with st.sidebar:
-    st.header("Features")
-    st.write("✅ Key Skills Detection")
-    st.write("✅ Missing Skills Analysis")
-    st.write("✅ Suggested Job Roles")
-    st.write("✅ Resume Improvement Suggestions")
 
-# Upload Section
-uploaded_file = st.file_uploader(
-    "Upload Resume (PDF/DOCX)",
-    type=["pdf", "docx"]
-)
+@app.post("/analyze-resume")
+def analyze_resume(file: UploadFile = File(...)):
+    try:
+        # Extract resume text
+        resume_text = helper.extract_resume_txt(file)
 
-if uploaded_file:
-
-    st.success("Resume uploaded successfully")
-
-    col1, col2 = st.columns([2,1])
-
-    with col1:
-        st.info(f"File Name: {uploaded_file.name}")
-
-    with col2:
-        analyze_button = st.button("Analyze Resume 🚀")
-
-    if analyze_button:
-
-        with st.spinner("Analyzing resume..."):
-
-            files = {
-                "file": (
-                    uploaded_file.name,
-                    uploaded_file.getvalue(),
-                    uploaded_file.type
-                )
-            }
-
-            response = requests.post(
-                API_URL,
-                files=files
+        if not resume_text.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="Unable to extract text from resume"
             )
 
-            if response.status_code == 200:
+        prompt = f"""
+        Analyze the below resume and provide:
 
-                result = response.json()
+        1. Key Skills
+        2. Missing Skills
+        3. Suggested Job Roles
+        4. Improvements in Resume
 
-                st.success("Analysis Completed")
+        Resume:
+        {resume_text}
+        """
 
-                analysis_text = result["analysis"]
+        response = client.responses.create(
+            model="gpt-4.1-mini",
+            input=prompt
+        )
 
-                tab1, tab2 = st.tabs([
-                    "📌 Analysis",
-                    "📥 Export"
-                ])
+        return {
+            "status": "success",
+            "analysis": response.output_text
+        }
 
-                with tab1:
-                    st.markdown("### AI Insights")
-                    st.write(analysis_text)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
-                with tab2:
-                    st.download_button(
-                        label="Download Analysis",
-                        data=analysis_text,
-                        file_name="resume_analysis.txt",
-                        mime="text/plain"
-                    )
-
-            else:
-                st.error("Error analyzing resume")
+    finally:
+        print("Program finished")
