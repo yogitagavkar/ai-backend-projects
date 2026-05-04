@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # Update after Render deployment
-API_URL = "https://resume-analyzer-new.streamlit.app/analyze-resume"
+API_URL = "https://resume-verifier.streamlit.app/analyze-resume"
 
 st.set_page_config(
     page_title="AI Resume Analyzer",
