@@ -1,23 +1,33 @@
 import pdfplumber
 from docx import Document
+from io import BytesIO
 
 
-def extract_pdf_text(file):
+async def extract_pdf_text(file):
     text = ""
 
-    with pdfplumber.open(file.file) as pdf:
+    content = await file.read()
+
+    pdf_file = BytesIO(content)
+
+    with pdfplumber.open(pdf_file) as pdf:
         for page in pdf.pages:
             page_text = page.extract_text()
+
             if page_text:
                 text += page_text + "\n"
 
     return text
 
 
-def extract_docx_text(file):
+async def extract_docx_text(file):
     text = ""
 
-    doc = Document(file.file)
+    content = await file.read()
+
+    doc_file = BytesIO(content)
+
+    doc = Document(doc_file)
 
     for para in doc.paragraphs:
         text += para.text + "\n"
@@ -25,14 +35,14 @@ def extract_docx_text(file):
     return text
 
 
-def extract_resume_txt(file):
+async def extract_resume_txt(file):
     filename = file.filename.lower()
 
     if filename.endswith(".pdf"):
-        return extract_pdf_text(file)
+        return await extract_pdf_text(file)
 
     elif filename.endswith(".docx"):
-        return extract_docx_text(file)
+        return await extract_docx_text(file)
 
     else:
         raise ValueError(

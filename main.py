@@ -4,15 +4,16 @@ import helper
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
 app = FastAPI()
 
-# OpenAI Client
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
-)
+api_key = os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    raise ValueError("OPENAI_API_KEY is missing")
+
+client = OpenAI(api_key=api_key)
 
 
 @app.get("/")
@@ -23,10 +24,9 @@ def root():
 
 
 @app.post("/analyze-resume")
-def analyze_resume(file: UploadFile = File(...)):
+async def analyze_resume(file: UploadFile = File(...)):
     try:
-        # Extract resume text
-        resume_text = helper.extract_resume_txt(file)
+        resume_text = await helper.extract_resume_txt(file)
 
         if not resume_text.strip():
             raise HTTPException(
@@ -35,25 +35,32 @@ def analyze_resume(file: UploadFile = File(...)):
             )
 
         prompt = f"""
-        Analyze the below resume and provide:
+Analyze this resume and provide:
 
-        1. Key Skills
-        2. Missing Skills
-        3. Suggested Job Roles
-        4. Improvements in Resume
+1. Key Skills
+2. Missing Skills
+3. Suggested Job Roles
+4. Resume Improvements
 
-        Resume:
-        {resume_text}
-        """
+Resume:
+{resume_text}
+"""
 
-        response = client.responses.create(
-            model="gpt-4.1-mini",
-            input=prompt
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
         )
+
+        analysis = response.choices[0].message.content
 
         return {
             "status": "success",
-            "analysis": response.output_text
+            "analysis": analysis
         }
 
     except Exception as e:
@@ -61,6 +68,3 @@ def analyze_resume(file: UploadFile = File(...)):
             status_code=500,
             detail=str(e)
         )
-
-    finally:
-        print("Program finished")

@@ -1,8 +1,8 @@
 import streamlit as st
 import requests
 
-# Update after Render deployment
-API_URL = "https://resume-verifier.streamlit.app/analyze-resume"
+# Put your actual FastAPI Render URL here
+API_URL = "https://resume-verifier-api.onrender.com/analyze-resume"
 
 st.set_page_config(
     page_title="AI Resume Analyzer",
@@ -10,13 +10,11 @@ st.set_page_config(
     layout="wide"
 )
 
-# Header
 st.markdown("""
 # 📄 AI Resume Analyzer
 ### Upload your resume and get AI-powered insights
 """)
 
-# Sidebar
 with st.sidebar:
     st.header("Features")
     st.write("✅ Key Skills")
@@ -24,7 +22,6 @@ with st.sidebar:
     st.write("✅ Suggested Job Roles")
     st.write("✅ Resume Improvements")
 
-# File uploader
 uploaded_file = st.file_uploader(
     "Upload Resume (PDF or DOCX)",
     type=["pdf", "docx"]
@@ -57,7 +54,8 @@ if uploaded_file:
             try:
                 response = requests.post(
                     API_URL,
-                    files=files
+                    files=files,
+                    timeout=60
                 )
 
                 if response.status_code == 200:
@@ -65,7 +63,6 @@ if uploaded_file:
                     result = response.json()
 
                     st.success("Analysis completed")
-
                     st.subheader("📊 Resume Analysis")
                     st.write(result["analysis"])
 
@@ -77,8 +74,7 @@ if uploaded_file:
                     )
 
                 else:
-                    st.error("Failed to analyze resume")
-                    st.text(response.text)
+                    st.error(response.text)
 
-            except Exception as e:
-                st.error(f"Request failed: {e}")
+            except requests.exceptions.RequestException as e:
+                st.error(f"Request failed: {str(e)}")
