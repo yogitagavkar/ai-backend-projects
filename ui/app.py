@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # Put your actual FastAPI Render URL here
-API_URL = "https://ai-resume-analyzer-lmvu.onrender.com/analyze-resume"
+API_URL = "https://resume-verifier-123.streamlit.app/analyze-resume"
 
 st.set_page_config(
     page_title="AI Resume Analyzer",
