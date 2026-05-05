@@ -1,9 +1,9 @@
 fastapi
 uvicorn
-streamlit
 openai
 python-dotenv
-python-multipart
-requests
 pdfplumber
 python-docx
+python-multipart
+requests
+streamlit
